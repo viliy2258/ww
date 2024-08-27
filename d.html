@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Information Lookup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .result {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .result p {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ваша IP інформація</h1>
+        <div id="result" class="result">
+            <!-- Результати будуть тут -->
+        </div>
+    </div>
+
+    <!-- Firebase Integration -->
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
+      import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyD-5CPzp5iwNHUxloFkDBf3J8gRlUpbGVc",
+        authDomain: "ton-not.firebaseapp.com",
+        databaseURL: "https://ton-not-default-rtdb.firebaseio.com",
+        projectId: "ton-not",
+        storageBucket: "ton-not.appspot.com",
+        messagingSenderId: "729333286761",
+        appId: "1:729333286761:web:741fdeb1572cc1908bdff8",
+        measurementId: "G-JKCWNWTLBT"
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+      const database = getDatabase(app);
+
+      // Function to save data to Firebase
+      function saveIpInfo(ipData) {
+          // Замінюємо заборонені символи в IP
+          const sanitizedIp = ipData.ip.replace(/\./g, '_'); // Заміна '.' на '_'
+          const ipRef = ref(database, 'ip-info/' + sanitizedIp);
+          set(ipRef, ipData)
+              .then(() => {
+                  console.log('Data saved successfully!');
+              })
+              .catch((error) => {
+                  console.error('Error saving data:', error);
+              });
+      }
+
+      // Function to fetch and display IP information automatically
+      function fetchIpInfo() {
+          const apiKey = 'f97dbd456afc08';
+          const url = `https://ipinfo.io/json?token=${apiKey}`;
+
+          fetch(url)
+              .then(response => response.json())
+              .then(data => {
+                  const resultDiv = document.getElementById('result');
+                  resultDiv.innerHTML = `
+                      <p><strong>IP:</strong> ${data.ip}</p>
+                      <p><strong>Hostname:</strong> ${data.hostname}</p>
+                      <p><strong>City:</strong> ${data.city}</p>
+                      <p><strong>Region:</strong> ${data.region}</p>
+                      <p><strong>Country:</strong> ${data.country}</p>
+                      <p><strong>Location:</strong> ${data.loc}</p>
+                      <p><strong>Organization:</strong> ${data.org}</p>
+                      <p><strong>Postal:</strong> ${data.postal}</p>
+                      <p><strong>Timezone:</strong> ${data.timezone}</p>
+                  `;
+
+                  // Save the data to Firebase
+                  saveIpInfo(data);
+              })
+              .catch(error => {
+                  const resultDiv = document.getElementById('result');
+                  resultDiv.innerHTML = `<p>Не вдалося отримати дані. Спробуйте пізніше.</p>`;
+                  console.error('Error:', error);
+              });
+      }
+
+      // Call the function to fetch IP information when the page loads
+      fetchIpInfo();
+    </script>
+</body>
+</html>
